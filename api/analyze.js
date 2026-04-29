@@ -1,5 +1,5 @@
 // /api/analyze.js
-// Vercel serverless function — keeps your API key hidden
+// Vercel serverless function — keeps API key hidden
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
