@@ -4,10 +4,40 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plainspeak — What does this contract actually say?</title>
-<meta name="description" content="Paste any contract. Get plain English in 30 seconds. Catches red flags, unusual clauses, and tells you what to push back on.">
+<meta name="description" content="Paste any contract or upload a PDF. Get plain English in 30 seconds. Catches red flags, unusual clauses, and tells you what to push back on. $9 per analysis.">
 <meta property="og:title" content="Plainspeak — Contract Translator">
-<meta property="og:description" content="Paste any contract. Get plain English. Catch red flags before you sign.">
+<meta property="og:description" content="Paste or upload any contract. Get plain English. Catch red flags before you sign.">
+
+<!-- Google Ads conversion tracking - replace AW-XXXXXXXXX with your real ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-XXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-XXXXXXXXX');
+</script>
+
+<!-- Meta Pixel - replace YOUR_PIXEL_ID with your real ID -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', 'YOUR_PIXEL_ID');
+fbq('track', 'PageView');
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<!-- File parsing libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+
 <style>
   :root {
     --ink: #1a1208;
@@ -59,10 +89,7 @@
     color: var(--ink);
   }
 
-  .logo span {
-    color: var(--accent);
-    font-style: italic;
-  }
+  .logo span { color: var(--accent); font-style: italic; }
 
   .tagline {
     font-family: 'IBM Plex Mono', monospace;
@@ -91,9 +118,7 @@
     padding: 48px 40px;
   }
 
-  .hero {
-    margin-bottom: 32px;
-  }
+  .hero { margin-bottom: 32px; }
 
   .hero h1 {
     font-family: 'Playfair Display', serif;
@@ -103,10 +128,7 @@
     max-width: 700px;
   }
 
-  .hero h1 em {
-    color: var(--accent);
-    font-style: italic;
-  }
+  .hero h1 em { color: var(--accent); font-style: italic; }
 
   .hero p {
     margin-top: 16px;
@@ -115,6 +137,24 @@
     font-weight: 300;
     max-width: 540px;
     line-height: 1.6;
+  }
+
+  .use-cases {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .use-case-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    padding: 6px 12px;
   }
 
   .trust-row {
@@ -135,6 +175,43 @@
     font-weight: 700;
   }
 
+  /* Demo button */
+  .demo-bar {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .demo-bar-text {
+    font-size: 13px;
+    color: var(--ink);
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .demo-bar-text strong { color: var(--accent); }
+
+  .btn-demo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-demo:hover { background: var(--accent); }
+
+  /* Workspace */
   .workspace {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -166,9 +243,78 @@
     background: var(--rule);
   }
 
+  /* Upload area */
+  .upload-zone {
+    border: 1px dashed var(--rule);
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 12px;
+    background: rgba(255,255,255,0.3);
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+
+  .upload-zone:hover {
+    border-color: var(--ink);
+    background: var(--cream);
+  }
+
+  .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .upload-zone-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .upload-zone-text strong { color: var(--accent); }
+
+  .upload-zone-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  #fileInput { display: none; }
+
+  /* Quality indicator */
+  .quality-indicator {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-left: 3px solid;
+    display: none;
+  }
+
+  .quality-indicator.good {
+    background: rgba(45, 106, 79, 0.06);
+    border-color: var(--green);
+    color: var(--ink);
+  }
+
+  .quality-indicator.warning {
+    background: rgba(233, 196, 106, 0.12);
+    border-color: var(--yellow);
+    color: var(--ink);
+  }
+
+  .quality-indicator.error {
+    background: rgba(200, 64, 26, 0.06);
+    border-color: var(--red);
+    color: var(--ink);
+  }
+
+  .quality-indicator strong { font-weight: 600; }
+
   textarea {
     width: 100%;
-    height: 380px;
+    height: 320px;
     background: transparent;
     border: 1px solid var(--rule);
     padding: 16px;
@@ -235,6 +381,7 @@
     margin-left: auto;
   }
 
+  /* Results panel */
   .results-container {
     min-height: 380px;
     position: relative;
@@ -378,6 +525,20 @@
     color: var(--ink);
   }
 
+  .demo-banner {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .demo-banner span { color: var(--yellow); }
+
   .action-bar {
     border: 2px solid var(--ink);
     border-top: none;
@@ -410,6 +571,161 @@
   }
 
   .btn-copy:hover { background: var(--ink); color: var(--paper); }
+
+  /* What we catch section */
+  .catches-section {
+    margin-top: 64px;
+    padding-top: 48px;
+    border-top: 2px solid var(--ink);
+  }
+
+  .catches-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+
+  .catches-section h2 em { color: var(--accent); font-style: italic; }
+
+  .catches-section > p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+    max-width: 560px;
+  }
+
+  .catches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0;
+    border: 2px solid var(--ink);
+  }
+
+  .catch-card {
+    padding: 24px;
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .catch-card:last-child { border-right: none; }
+
+  .catch-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .catch-clause {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: rgba(255,255,255,0.5);
+    border-left: 2px solid var(--rule);
+  }
+
+  .catch-translation {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+
+  .catch-translation strong { color: var(--accent); }
+
+  /* Privacy section */
+  .privacy-section {
+    margin-top: 64px;
+    padding: 32px;
+    background: var(--cream);
+    border: 2px solid var(--ink);
+  }
+
+  .privacy-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .privacy-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .privacy-list li {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink);
+    padding-left: 24px;
+    position: relative;
+  }
+
+  .privacy-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--green);
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .privacy-list strong { color: var(--accent); }
+
+  /* FAQ section */
+  .faq-section {
+    margin-top: 64px;
+  }
+
+  .faq-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    margin-bottom: 24px;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--rule);
+    padding: 20px 0;
+  }
+
+  .faq-question {
+    font-weight: 500;
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+
+  .faq-answer {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--muted);
+  }
+
+  /* Built by */
+  .built-by {
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid var(--rule);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  .built-by a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .built-by a:hover { text-decoration: underline; }
 
   .disclaimer {
     margin-top: 32px;
@@ -448,6 +764,7 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
+    overflow-y: auto;
   }
 
   .modal-overlay.active { display: flex; }
@@ -455,10 +772,11 @@
   .modal {
     background: var(--paper);
     border: 2px solid var(--ink);
-    max-width: 480px;
+    max-width: 560px;
     width: 100%;
     padding: 40px;
     position: relative;
+    margin: 20px 0;
   }
 
   .modal h2 {
@@ -470,11 +788,81 @@
 
   .modal h2 em { color: var(--accent); font-style: italic; }
 
-  .modal p {
+  .modal-subtitle {
     color: var(--muted);
     font-size: 14px;
     line-height: 1.6;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+  }
+
+  /* Preview of analysis - blurred */
+  .preview-box {
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    padding: 16px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .preview-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .preview-flag {
+    display: flex;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-left: 3px solid;
+    background: rgba(255,255,255,0.4);
+  }
+
+  .preview-flag.red { border-color: var(--red); }
+  .preview-flag.yellow { border-color: var(--yellow); }
+
+  .preview-flag-icon { flex-shrink: 0; font-size: 12px; }
+
+  .preview-flag-text { color: var(--ink); }
+
+  .preview-blurred {
+    filter: blur(5px);
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .preview-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, transparent 0%, transparent 30%, var(--cream) 90%);
+  }
+
+  .preview-overlay-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-top: 60px;
+    background: var(--cream);
+    padding: 6px 12px;
+    border: 1px solid var(--accent);
+  }
+
+  .modal-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
   }
 
   .modal-price {
@@ -483,21 +871,19 @@
     font-weight: 700;
     color: var(--accent);
     line-height: 1;
-    margin: 24px 0 8px;
   }
 
-  .modal-price-sub {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+  .modal-price-context {
+    font-size: 13px;
     color: var(--muted);
-    margin-bottom: 24px;
+    line-height: 1.4;
   }
+
+  .modal-price-context strong { color: var(--ink); }
 
   .modal-features {
     list-style: none;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
 
   .modal-features li {
@@ -512,6 +898,18 @@
     font-weight: 700;
     margin-right: 6px;
   }
+
+  .guarantee-box {
+    margin-bottom: 24px;
+    padding: 14px;
+    background: rgba(45, 106, 79, 0.08);
+    border-left: 3px solid var(--green);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+
+  .guarantee-box strong { color: var(--green); }
 
   .btn-pay {
     width: 100%;
@@ -545,6 +943,80 @@
     line-height: 1;
   }
 
+  /* Email capture (shown after they close paywall) */
+  .email-capture {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .email-capture-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .email-capture input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--rule);
+    background: white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    outline: none;
+  }
+
+  .email-capture input:focus { border-color: var(--ink); }
+
+  .btn-save {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+
+  .btn-save:hover { background: var(--accent); }
+
+  .email-capture-success {
+    color: var(--green);
+    font-size: 12px;
+    margin-top: 8px;
+    display: none;
+  }
+
+  /* OCR progress */
+  .ocr-progress {
+    margin-bottom: 12px;
+    padding: 12px;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    font-size: 12px;
+    color: var(--ink);
+    display: none;
+  }
+
+  .ocr-progress-bar {
+    height: 4px;
+    background: var(--rule);
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .ocr-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s;
+  }
+
   @media (max-width: 700px) {
     main { padding: 24px 16px; }
     header { padding: 16px; }
@@ -552,6 +1024,7 @@
     .panel:first-child { border-right: none; border-bottom: 2px solid var(--ink); }
     .hero h1 { font-size: 32px; }
     .modal { padding: 28px; }
+    .catch-card { border-right: none; }
   }
 </style>
 </head>
@@ -564,22 +1037,56 @@
 </header>
 
 <main>
+  <!-- HERO -->
   <div class="hero">
     <h1>What does this contract <em>actually</em> say?</h1>
-    <p>Paste any contract, NDA, lease, or freelance agreement. Get plain English, red flags, and exactly what to push back on — in 30 seconds.</p>
+    <p>Paste any contract or upload a PDF. Get plain English, red flags, and exactly what to push back on — in 30 seconds.</p>
+    <div class="use-cases">
+      <span class="use-case-pill">Freelance NDAs</span>
+      <span class="use-case-pill">Apartment leases</span>
+      <span class="use-case-pill">Vendor contracts</span>
+      <span class="use-case-pill">Employment offers</span>
+      <span class="use-case-pill">Service agreements</span>
+      <span class="use-case-pill">Independent contractor</span>
+    </div>
     <div class="trust-row">
       <span>30 second analysis</span>
       <span>No signup required</span>
-      <span>Pay only when you analyze</span>
+      <span>24-hour money back</span>
+      <span>Never stored</span>
     </div>
   </div>
 
+  <!-- DEMO BAR -->
+  <div class="demo-bar">
+    <div class="demo-bar-text">
+      <strong>First time here?</strong> Try Plainspeak on a sample freelance NDA — see exactly what you'll get before paying.
+    </div>
+    <button class="btn-demo" onclick="loadDemo()">Try Sample Analysis →</button>
+  </div>
+
+  <!-- WORKSPACE -->
   <div class="workspace">
     <div class="panel">
-      <div class="panel-label">Paste contract text</div>
-      <textarea id="contractInput" placeholder="Paste your contract, NDA, lease, freelance agreement, or any legal document here...
+      <div class="panel-label">Paste or upload contract</div>
+      
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-zone-text"><strong>Click to upload</strong> or drag a file here</div>
+        <div class="upload-zone-sub">PDF or DOCX · scanned PDFs supported via OCR</div>
+        <input type="file" id="fileInput" accept=".pdf,.docx" onchange="handleFileUpload(event)">
+      </div>
+
+      <div class="ocr-progress" id="ocrProgress">
+        <div id="ocrProgressText">Reading file...</div>
+        <div class="ocr-progress-bar"><div class="ocr-progress-fill" id="ocrProgressFill"></div></div>
+      </div>
+
+      <div class="quality-indicator" id="qualityIndicator"></div>
+
+      <textarea id="contractInput" placeholder="...or paste your contract text here.
 
 The more text you include, the better the analysis."></textarea>
+
       <div class="controls">
         <button class="btn-analyze" id="analyzeBtn" onclick="checkAndAnalyze()">Translate →</button>
         <button class="btn-clear" onclick="clearAll()">Clear</button>
@@ -603,53 +1110,434 @@ The more text you include, the better the analysis."></textarea>
     <button class="btn-copy" onclick="copyAnalysis()">Copy to clipboard</button>
   </div>
 
+  <!-- WHAT WE CATCH -->
+  <section class="catches-section">
+    <h2>What Plainspeak <em>catches</em></h2>
+    <p>Real clauses we've found in real contracts. The kind of thing buried on page 7 that you'd never read but would absolutely sign.</p>
+
+    <div class="catches-grid">
+      <div class="catch-card">
+        <div class="catch-tag">Freelance Contract</div>
+        <div class="catch-clause">"Contractor assigns to Company all rights, title, and interest in any Inventions in perpetuity, including those developed outside the scope of this Agreement..."</div>
+        <div class="catch-translation"><strong>Translation:</strong> Anything you build — even on weekends, even unrelated to this client — they own. Forever.</div>
+      </div>
+
+      <div class="catch-card">
+        <div class="catch-tag">Apartment Lease</div>
+        <div class="catch-clause">"Tenant agrees that Landlord may enter the premises at any time without prior notice for purposes Landlord deems reasonable..."</div>
+        <div class="catch-translation"><strong>Translation:</strong> Your landlord can walk in whenever they want. This violates law in most states — but if you sign it, you've waived your right to push back.</div>
+      </div>
+
+      <div class="catch-card">
+        <div class="catch-tag">Vendor NDA</div>
+        <div class="catch-clause">"Recipient shall indemnify Disclosing Party against all damages, costs, and attorney fees arising from any breach, alleged or actual..."</div>
+        <div class="catch-translation"><strong>Translation:</strong> If they accuse you of leaking info — even falsely — you pay their legal bills. Just for being accused.</div>
+      </div>
+
+      <div class="catch-card">
+        <div class="catch-tag">Employment Offer</div>
+        <div class="catch-clause">"Employee shall not, for a period of seven (7) years following termination, engage in any business activity competitive with the Company..."</div>
+        <div class="catch-translation"><strong>Translation:</strong> A 7-year non-compete. Most states cap these at 1-2 years. This is unenforceable in many places, but designed to scare you out of leaving.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="privacy-section">
+    <h3>How your contract is handled</h3>
+    <ul class="privacy-list">
+      <li><strong>Never stored.</strong> Your contract text is sent for analysis once and never written to a database. There is no database.</li>
+      <li><strong>Files processed in your browser.</strong> PDFs and DOCX files are parsed locally — only the extracted text is sent for analysis.</li>
+      <li><strong>OCR runs locally too.</strong> Scanned PDFs are processed in your browser using Tesseract. The image never leaves your device.</li>
+      <li><strong>Not used for training.</strong> Anthropic's API does not train on input from this service.</li>
+      <li><strong>No account, no tracking pixel for content.</strong> We don't know what you uploaded. We can't read it later.</li>
+      <li><strong>You control what you paste.</strong> If a contract has personal data you'd rather not share, redact it before pasting. We recommend it.</li>
+    </ul>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <h2>Common questions</h2>
+
+    <div class="faq-item">
+      <div class="faq-question">Is this just ChatGPT with a paywall?</div>
+      <div class="faq-answer">No. Plainspeak uses Anthropic's Claude (a different AI model) with a custom prompt specifically engineered for contract analysis. The system prompt is what makes the difference — it knows what to flag, how to rank severity, and how to phrase pushback points usefully. You could try to get similar output from a generic chatbot, but you'd spend an hour and probably miss the structured output.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Can I trust this for important contracts?</div>
+      <div class="faq-answer">Plainspeak is a first-pass tool, not legal advice. It's designed to help you understand what a contract says and identify questions worth asking before signing. For high-stakes contracts (employment with significant equity, major real estate purchases, business acquisitions), a licensed attorney is non-negotiable. For everyday contracts where hiring a lawyer would cost more than the contract is worth, Plainspeak is exactly what you need.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">What if the analysis misses something?</div>
+      <div class="faq-answer">Honest answer: AI analysis can miss subtle clauses, especially in unusually-formatted documents or documents with significant OCR errors. We show you the extracted text before payment so you can verify input quality. If the analysis isn't useful, the 24-hour refund applies — no questions asked.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">What languages are supported?</div>
+      <div class="faq-answer">Currently English-language contracts only. Non-English text will return an error. We may add other languages later if there's demand.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Why $9?</div>
+      <div class="faq-answer">It's the price where this is obviously worth it for a contract you'd actually sign. A lawyer's hourly rate is $200-500. A contract review service is $200-1500. For a one-page freelance NDA, none of those are practical. $9 makes the math easy.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Can I get a refund?</div>
+      <div class="faq-answer">Yes. If the analysis isn't useful, email us at the address below within 24 hours and we'll refund you. No form, no questions. We track refund requests but don't argue about them.</div>
+    </div>
+  </section>
+
+  <!-- BUILT BY -->
+  <div class="built-by">
+    Built by Michael King in San Antonio, TX.<br>
+    Questions or refunds: <a href="mailto:hello@plainspeak.io">hello@plainspeak.io</a>
+  </div>
+
   <div class="disclaimer">
     <strong>Not legal advice.</strong> Plainspeak uses AI to summarize contract language for informational purposes only. 
-    Always consult a licensed attorney before signing any legal agreement. 
-    Your contract text is sent to our analysis service. Do not paste documents containing sensitive personal data like SSNs or financial account numbers.
+    Always consult a licensed attorney before signing high-stakes legal agreements. 
+    Do not paste documents containing sensitive personal data like SSNs or financial account numbers.
   </div>
 </main>
 
-<!-- Paywall Modal -->
+<!-- PAYWALL MODAL -->
 <div class="modal-overlay" id="paywallModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">×</button>
-    <h2>Get the <em>full analysis</em></h2>
-    <p>One-time payment. No subscription. Your contract text is saved — you'll come right back here after payment.</p>
-    
-    <div class="modal-price">$9</div>
-    <div class="modal-price-sub">Per contract analysis</div>
+    <h2>Unlock <em>full analysis</em></h2>
+    <p class="modal-subtitle">Your contract is ready to be analyzed. Here's a preview — pay once to reveal the rest.</p>
+
+    <!-- Preview with blurred content -->
+    <div class="preview-box">
+      <div class="preview-label">Preview — what you'll get</div>
+      <div class="preview-flag red">
+        <span class="preview-flag-icon">🚨</span>
+        <span class="preview-flag-text">Indemnification clause makes you personally liable for...</span>
+      </div>
+      <div class="preview-flag yellow preview-blurred">
+        <span class="preview-flag-icon">⚠️</span>
+        <span class="preview-flag-text">Unusual termination clause requires 90 days notice while the other party only needs 30...</span>
+      </div>
+      <div class="preview-flag yellow preview-blurred">
+        <span class="preview-flag-icon">⚠️</span>
+        <span class="preview-flag-text">IP assignment scope extends to work product created...</span>
+      </div>
+      <div class="preview-overlay">
+        <div class="preview-overlay-text">+ 4 more flags · pushback list · verdict</div>
+      </div>
+    </div>
+
+    <div class="modal-price-row">
+      <div class="modal-price">$9</div>
+      <div class="modal-price-context">
+        Less than a coffee.<br>
+        <strong>1.3 minutes</strong> of a $400/hr lawyer.
+      </div>
+    </div>
 
     <ul class="modal-features">
       <li>Plain English summary of the entire contract</li>
       <li>Every red flag, ranked by severity</li>
       <li>Specific clauses to push back on</li>
       <li>Honest verdict: sign, negotiate, or walk</li>
-      <li>Copy-to-clipboard for your records</li>
+      <li>Copy-to-clipboard export for your records</li>
     </ul>
 
-    <a href="#" id="payButton" class="btn-pay">Pay $9 & Analyze →</a>
+    <div class="guarantee-box">
+      <strong>24-hour money back.</strong> If the analysis isn't useful, email us within 24 hours and we'll refund you. No form, no questions.
+    </div>
+
+    <a href="#" id="payButton" class="btn-pay">Continue to Analysis · $9 →</a>
+
+    <div class="email-capture">
+      Not ready to buy? Save your analysis for later — we'll email you a link.
+      <div class="email-capture-row">
+        <input type="email" id="emailInput" placeholder="your@email.com">
+        <button class="btn-save" onclick="captureEmail()">Save</button>
+      </div>
+      <div class="email-capture-success" id="emailSuccess">✓ Saved. Check your inbox.</div>
+    </div>
   </div>
 </div>
 
 <script>
   // ============ CONFIGURATION ============
-  // Replace with your Stripe Payment Link URL after creating it in Stripe
-  const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_7sYdRbcaK3OV9jo4VqeEo00';
+  const STRIPE_PAYMENT_LINK = 'YOUR_STRIPE_PAYMENT_LINK_HERE';
   // ========================================
+
+  // PDF.js worker setup
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
 
   const textarea = document.getElementById('contractInput');
   const charCount = document.getElementById('charCount');
+  const qualityIndicator = document.getElementById('qualityIndicator');
 
   textarea.addEventListener('input', () => {
-    charCount.textContent = textarea.value.length.toLocaleString() + ' chars';
+    const len = textarea.value.length;
+    charCount.textContent = len.toLocaleString() + ' chars';
+    updateQualityIndicator(len, 'paste');
   });
 
   let lastAnalysis = '';
+  let isDemoMode = false;
 
+  // ============ QUALITY INDICATOR ============
+  function updateQualityIndicator(charLen, source) {
+    if (charLen === 0) {
+      qualityIndicator.style.display = 'none';
+      return;
+    }
+    qualityIndicator.style.display = 'block';
+    if (charLen < 300) {
+      qualityIndicator.className = 'quality-indicator warning';
+      qualityIndicator.innerHTML = `<strong>Limited text.</strong> Analysis may be brief. Best results come from full contract text (1,000+ characters).`;
+    } else if (charLen < 1000) {
+      qualityIndicator.className = 'quality-indicator warning';
+      qualityIndicator.innerHTML = `<strong>Partial contract detected.</strong> Analysis will work but may miss context from sections not included.`;
+    } else {
+      qualityIndicator.className = 'quality-indicator good';
+      qualityIndicator.innerHTML = `<strong>Sufficient context.</strong> Ready for thorough analysis.`;
+    }
+  }
+
+  // ============ FILE UPLOAD ============
+  const uploadZone = document.getElementById('uploadZone');
+  
+  uploadZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadZone.classList.add('drag-over');
+  });
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('drag-over');
+  });
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  function handleFileUpload(e) {
+    if (e.target.files.length) handleFile(e.target.files[0]);
+  }
+
+  async function handleFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    
+    if (!['pdf', 'docx'].includes(ext)) {
+      showQualityError('Unsupported file type. Please upload a PDF or DOCX.');
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      showQualityError('File too large. Maximum 20MB.');
+      return;
+    }
+
+    showOcrProgress(`Reading ${file.name}...`, 0);
+
+    try {
+      let text = '';
+      let usedOcr = false;
+
+      if (ext === 'docx') {
+        text = await parseDocx(file);
+      } else if (ext === 'pdf') {
+        const result = await parsePdf(file);
+        text = result.text;
+        usedOcr = result.usedOcr;
+      }
+
+      hideOcrProgress();
+
+      if (!text || text.trim().length < 50) {
+        showQualityError('Could not extract readable text from this file. Try copying and pasting the text directly.');
+        return;
+      }
+
+      textarea.value = text;
+      charCount.textContent = text.length.toLocaleString() + ' chars';
+
+      if (usedOcr) {
+        qualityIndicator.style.display = 'block';
+        qualityIndicator.className = 'quality-indicator warning';
+        qualityIndicator.innerHTML = `<strong>OCR was used to extract text.</strong> Quality may vary — please review the text above and edit any obvious errors before analyzing. The analysis can only be as accurate as the input text.`;
+      } else {
+        updateQualityIndicator(text.length, 'upload');
+      }
+
+    } catch (err) {
+      console.error('File parse error:', err);
+      hideOcrProgress();
+      showQualityError('Could not read this file. Try saving it as plain text or copy-paste the contents.');
+    }
+  }
+
+  function showOcrProgress(text, pct) {
+    const el = document.getElementById('ocrProgress');
+    el.style.display = 'block';
+    document.getElementById('ocrProgressText').textContent = text;
+    document.getElementById('ocrProgressFill').style.width = pct + '%';
+  }
+
+  function hideOcrProgress() {
+    document.getElementById('ocrProgress').style.display = 'none';
+  }
+
+  function showQualityError(msg) {
+    qualityIndicator.style.display = 'block';
+    qualityIndicator.className = 'quality-indicator error';
+    qualityIndicator.innerHTML = `<strong>${msg}</strong>`;
+  }
+
+  async function parseDocx(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+  }
+
+  async function parsePdf(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    let allText = '';
+    let totalCharsExtracted = 0;
+    
+    // First pass: try text extraction
+    for (let i = 1; i <= pdf.numPages; i++) {
+      showOcrProgress(`Reading page ${i} of ${pdf.numPages}...`, (i / pdf.numPages) * 50);
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map(item => item.str).join(' ');
+      allText += pageText + '\n\n';
+      totalCharsExtracted += pageText.trim().length;
+    }
+
+    // If text extraction got very little, fall back to OCR
+    const avgCharsPerPage = totalCharsExtracted / pdf.numPages;
+    if (avgCharsPerPage < 100) {
+      // Likely a scanned PDF — use OCR
+      return await ocrPdf(pdf);
+    }
+
+    return { text: allText, usedOcr: false };
+  }
+
+  async function ocrPdf(pdf) {
+    showOcrProgress('Scanned PDF detected. Running OCR (this may take 10-30 seconds)...', 50);
+    
+    const worker = await Tesseract.createWorker('eng', 1, {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const pct = 50 + (m.progress * 50);
+          showOcrProgress(`Extracting text via OCR... ${Math.round(m.progress * 100)}%`, pct);
+        }
+      }
+    });
+
+    let allText = '';
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 2.0 });
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      
+      const { data: { text } } = await worker.recognize(canvas);
+      allText += text + '\n\n';
+    }
+
+    await worker.terminate();
+    return { text: allText, usedOcr: true };
+  }
+
+  // ============ DEMO MODE ============
+  function loadDemo() {
+    const sampleContract = `INDEPENDENT CONTRACTOR AGREEMENT
+
+This Agreement is entered into between Acme Corp ("Company") and the undersigned ("Contractor").
+
+1. SERVICES. Contractor agrees to perform graphic design services as directed by Company.
+
+2. COMPENSATION. Company shall pay Contractor $50/hour, invoiced monthly, payable Net 60.
+
+3. INTELLECTUAL PROPERTY. Contractor hereby assigns to Company all right, title, and interest in any work product, inventions, designs, or creative materials developed by Contractor during the term of this Agreement and for a period of two (2) years thereafter, whether or not such work was created within the scope of services for Company.
+
+4. NON-COMPETE. For a period of three (3) years following termination of this Agreement, Contractor shall not engage in graphic design services for any business that competes with Company in any geographic market.
+
+5. INDEMNIFICATION. Contractor shall indemnify, defend, and hold harmless Company from any and all claims, damages, costs, and attorney fees arising from Contractor's services, including claims arising from Company's own negligence.
+
+6. TERMINATION. Company may terminate this Agreement at any time without cause and without payment for work in progress. Contractor must provide 60 days written notice of termination.
+
+7. GOVERNING LAW. This Agreement shall be governed by the laws of Delaware, and any disputes shall be resolved exclusively in Delaware courts.
+
+8. ENTIRE AGREEMENT. This Agreement constitutes the entire agreement between the parties.`;
+
+    textarea.value = sampleContract;
+    charCount.textContent = sampleContract.length.toLocaleString() + ' chars';
+    updateQualityIndicator(sampleContract.length, 'demo');
+    
+    isDemoMode = true;
+    runDemoAnalysis();
+    
+    // Smooth scroll to results
+    setTimeout(() => {
+      document.querySelector('.workspace').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+
+  function runDemoAnalysis() {
+    document.getElementById('resultsContainer').innerHTML = `
+      <div class="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Reading the fine print...</div>
+      </div>`;
+
+    setTimeout(() => {
+      const demoResult = {
+        summary: "This is a freelance graphic design contract. It pays $50/hr on Net 60 terms (slow), claims ownership of your work for 2 years AFTER you stop working, includes a 3-year non-compete, and makes you liable even when the company is at fault.",
+        red_flags: [
+          { text: "IP assignment extends 2 years AFTER termination — work you create on your own time, for other clients, after this contract ends, could be claimed by Acme." },
+          { text: "Indemnification clause requires you to pay legal costs even when claims arise from Acme's own negligence. This is unusually one-sided and exposes you to unlimited liability." },
+          { text: "3-year non-compete in 'any geographic market' is unenforceable in many states (California voids these entirely) but designed to scare you out of working with similar clients." }
+        ],
+        yellow_flags: [
+          { text: "Net 60 payment terms are slow. Industry standard is Net 15-30. You'll be funding 2 months of your own work." },
+          { text: "Termination is asymmetric: they can fire you instantly without paying for in-progress work; you must give 60 days notice." },
+          { text: "Delaware governing law and venue means any dispute requires you to travel to Delaware courts — expensive if you're not based there." }
+        ],
+        green_flags: [
+          { text: "Compensation is clearly stated at $50/hour with monthly invoicing — no ambiguity on rate." }
+        ],
+        pushback: [
+          "Limit IP assignment to work created specifically for Acme during the contract term, not 2 years after.",
+          "Strike or rewrite the indemnification clause to exclude claims arising from Acme's negligence.",
+          "Reduce non-compete to 6-12 months and limit to direct competitors, not all graphic design.",
+          "Change payment terms to Net 15 or Net 30, with late fees if exceeded.",
+          "Make termination symmetric: same notice period for both parties, plus payment for completed work."
+        ],
+        verdict: "Negotiate before signing. The IP, indemnification, and non-compete clauses are unusually predatory and worth pushing back on hard."
+      };
+
+      renderResults(demoResult, true);
+    }, 1500);
+  }
+
+  // ============ MAIN ANALYSIS FLOW ============
   function clearAll() {
     textarea.value = '';
     charCount.textContent = '0 chars';
+    qualityIndicator.style.display = 'none';
+    isDemoMode = false;
     document.getElementById('resultsContainer').innerHTML = `
       <div class="empty-state"><div class="empty-icon">⚖️</div><p>Waiting for contract</p></div>`;
     document.getElementById('actionBar').style.display = 'none';
@@ -664,12 +1552,8 @@ The more text you include, the better the analysis."></textarea>
       return;
     }
 
-    // Save contract text + show paywall
     sessionStorage.setItem('pendingContract', text);
-    
-    // Build pay link with prefill_email and client_reference_id for tracking
-    const payLink = STRIPE_PAYMENT_LINK;
-    document.getElementById('payButton').href = payLink;
+    document.getElementById('payButton').href = STRIPE_PAYMENT_LINK;
     document.getElementById('paywallModal').classList.add('active');
   }
 
@@ -717,7 +1601,7 @@ The more text you include, the better the analysis."></textarea>
       if (parsed.error) {
         showError(parsed.error);
       } else {
-        renderResults(parsed);
+        renderResults(parsed, false);
       }
 
       btn.disabled = false;
@@ -730,7 +1614,7 @@ The more text you include, the better the analysis."></textarea>
     }
   }
 
-  function renderResults(data) {
+  function renderResults(data, isDemo) {
     const redFlags = (data.red_flags || []).map(f =>
       `<div class="flag red"><span class="flag-icon">🚨</span><span>${escHtml(f.text)}</span></div>`
     ).join('');
@@ -745,9 +1629,11 @@ The more text you include, the better the analysis."></textarea>
     ).join('');
 
     const hasFlags = redFlags || yellowFlags || greenFlags;
+    const demoBanner = isDemo ? `<div class="demo-banner"><span>★ Sample analysis</span> · This is what you'd get for your own contract</div>` : '';
 
     document.getElementById('resultsContainer').innerHTML = `
       <div class="analysis">
+        ${demoBanner}
         <div class="section">
           <div class="section-title">What it says</div>
           <div class="summary-text">${escHtml(data.summary)}</div>
@@ -792,16 +1678,53 @@ The more text you include, the better the analysis."></textarea>
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // On load: check if returning from Stripe
+  // ============ EMAIL CAPTURE ============
+  async function captureEmail() {
+    const email = document.getElementById('emailInput').value.trim();
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email');
+      return;
+    }
+
+    const contractPreview = (sessionStorage.getItem('pendingContract') || '').slice(0, 100);
+
+    try {
+      const response = await fetch('/api/capture-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, contractPreview })
+      });
+
+      if (response.ok) {
+        document.getElementById('emailSuccess').style.display = 'block';
+        document.getElementById('emailInput').disabled = true;
+      }
+    } catch (err) {
+      console.error('Email capture error:', err);
+    }
+  }
+
+  // ============ ON LOAD: HANDLE PAYMENT REDIRECT ============
   window.addEventListener('load', () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('paid') === 'true') {
+      // Fire conversion pixels
+      if (typeof gtag === 'function') {
+        gtag('event', 'conversion', {
+          'send_to': 'AW-XXXXXXXXX/YYYYYYYYYY',
+          'value': 9.0,
+          'currency': 'USD'
+        });
+      }
+      if (typeof fbq === 'function') {
+        fbq('track', 'Purchase', {value: 9.00, currency: 'USD'});
+      }
+
       const saved = sessionStorage.getItem('pendingContract');
       if (saved) {
         textarea.value = saved;
         charCount.textContent = saved.length.toLocaleString() + ' chars';
         sessionStorage.removeItem('pendingContract');
-        // Clean URL
         window.history.replaceState({}, '', window.location.pathname);
         analyze();
       }
